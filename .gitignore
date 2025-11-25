@@ -1,0 +1,9 @@
+*.backup
+*.log
+*.old
+*.tmp
+.DS_Store
+.vite/
+dist/
+node_modules/
+nohup.out

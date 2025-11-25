@@ -1,0 +1,19 @@
+{
+  "name": "transportes-edimburgo",
+  "version": "1.0.0",
+  "description": "Sitio web de Transportes Edimburgo",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite preview"
+  },
+  "keywords": ["transport", "tourism", "chile"],
+  "author": "Transportes Edimburgo",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "terser": "^5.24.0"
+  }
+}
