@@ -471,78 +471,115 @@ section {
 
 /* About Section */
 .about-section {
-    background: var(--white);
-    padding: 8rem 0;
+    min-height: 100vh;
+    background: var(--dark-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
     width: 100%;
 }
 
-.about-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    align-items: stretch;
-    max-width: 1400px;
+.about-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(26,26,26,0.3) 0%, rgba(45,45,45,0.4) 100%);
+    z-index: 1;
+}
+
+.about-image {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.about-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+    transition: transform var(--transition-slow);
+    animation: slowZoom 20s ease-in-out infinite;
+}
+
+.about-content {
+    position: relative;
+    z-index: 2;
+    padding: 4rem 2rem;
+    flex: 1;
+    max-width: 1200px;
     margin: 0 auto;
-    min-height: 600px;
     width: 100%;
-}
-
-.about-text-section {
-    background: var(--grey-bg);
-    padding: 5rem 4rem;
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: center;
-    color: var(--white);
+    text-align: center;
 }
 
-.about-text-section .section-title {
+.about-content .section-title {
     color: var(--white);
-    font-size: 3.5rem;
-    margin-bottom: 0.5rem;
-    text-align: left;
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    text-align: center;
 }
 
-.about-text-section .section-subtitle {
+.about-content .section-subtitle {
     color: var(--white);
-    opacity: 0.7;
-    font-size: 1.3rem;
-    margin-bottom: 2.5rem;
-    text-align: left;
+    opacity: 0.9;
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 
 .about-description {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     line-height: 1.8;
     margin-bottom: 3rem;
-    color: var(--text-light);
+    color: var(--white);
     opacity: 0.95;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .about-features {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .feature-item {
     display: flex;
     align-items: center;
     gap: 1rem;
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: var(--white);
-    padding: 0.75rem;
+    padding: 1rem;
     border-radius: 8px;
     transition: all var(--transition-normal);
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
 }
 
 .feature-item:hover {
-    background: rgba(255,255,255,0.1);
-    transform: translateX(5px);
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-5px);
 }
 
 .feature-icon {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     min-width: 30px;
     text-align: center;
     transition: transform var(--transition-normal);
@@ -550,22 +587,6 @@ section {
 
 .feature-item:hover .feature-icon {
     transform: scale(1.2) rotate(5deg);
-}
-
-.about-image-section {
-    position: relative;
-    overflow: hidden;
-}
-
-.about-image-section img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform var(--transition-slow);
-}
-
-.about-image-section:hover img {
-    transform: scale(1.1);
 }
 
 .image-overlay-badge {
@@ -613,62 +634,96 @@ section {
 
 /* Services Section */
 .services-section {
+    min-height: 100vh;
     background: var(--dark-bg);
-    padding: 8rem 0;
-    width: 100%;
-}
-
-.services-container {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 0;
-    align-items: stretch;
-    max-width: 1400px;
-    margin: 0 auto;
-    min-height: 600px;
-    width: 100%;
-}
-
-.services-image-section {
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     position: relative;
+    overflow: hidden;
+    width: 100%;
 }
 
-.services-image-section img {
+.services-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(26,26,26,0.3) 0%, rgba(45,45,45,0.4) 100%);
+    z-index: 1;
+}
+
+.services-image {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.services-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    opacity: 0.7;
     transition: transform var(--transition-slow);
-    animation: slowPan 25s ease-in-out infinite;
+    animation: slowZoom 20s ease-in-out infinite;
 }
 
-@keyframes slowPan {
-    0%, 100% {
-        transform: scale(1) translateX(0);
-    }
-    50% {
-        transform: scale(1.1) translateX(-5%);
-    }
+.services-overlay-text {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 5rem;
+    font-weight: 800;
+    color: var(--white);
+    text-align: center;
+    z-index: 2;
+    opacity: 0.7;
+    text-shadow: 2px 2px 12px rgba(0,0,0,0.9);
+    letter-spacing: 4px;
+    pointer-events: none;
+    width: 100%;
 }
 
-.services-image-section:hover img {
-    transform: scale(1.15) translateX(-3%);
+.services-content {
+    position: relative;
+    z-index: 2;
+    padding: 4rem 2rem;
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .services-text-section {
-    background: var(--grey-bg);
-    padding: 5rem 4rem;
+    background: rgba(45, 45, 45, 0.4);
+    backdrop-filter: blur(10px);
+    padding: 4rem 3rem;
+    border-radius: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     color: var(--white);
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .services-text-section .section-title {
     color: var(--white);
-    font-size: 3.5rem;
-    margin-bottom: 3rem;
-    text-align: left;
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    opacity: 0.95;
 }
 
 .services-list {
