@@ -13,10 +13,12 @@ const languageSelector = document.querySelector('.language-selector');
 const langOptions = document.querySelectorAll('.lang-option');
 
 // Toggle dropdown
-langToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    languageSelector.classList.toggle('active');
-});
+if (langToggle) {
+    langToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        languageSelector.classList.toggle('active');
+    });
+}
 
 // Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
@@ -67,29 +69,25 @@ function updateLanguage() {
         }
     });
     
-    // Update elements with only es and en (backward compatibility)
-    const elementsOld = document.querySelectorAll('[data-es][data-en]:not([data-pt])');
-    elementsOld.forEach(element => {
-        if (currentLang === 'pt') {
-            // For Portuguese, use Spanish as fallback
-            element.textContent = element.getAttribute('data-es');
-        } else {
-            const text = element.getAttribute(`data-${currentLang}`);
-            if (text) {
-                element.textContent = text;
-            }
-        }
-    });
-    
     // Update placeholders
-    const distanceInput = document.getElementById('distance');
-    if (distanceInput) {
+    const originInput = document.getElementById('origin-input');
+    if (originInput) {
         const placeholders = {
-            'es': 'Ingresa la distancia',
-            'en': 'Enter distance',
-            'pt': 'Digite a distância'
+            'es': 'Ingresa el origen',
+            'en': 'Enter origin',
+            'pt': 'Digite a origem'
         };
-        distanceInput.placeholder = placeholders[currentLang] || placeholders['es'];
+        originInput.placeholder = placeholders[currentLang] || placeholders['es'];
+    }
+
+    const destinationInput = document.getElementById('destination-input');
+    if (destinationInput) {
+        const placeholders = {
+            'es': 'Ingresa el destino',
+            'en': 'Enter destination',
+            'pt': 'Digite o destino'
+        };
+        destinationInput.placeholder = placeholders[currentLang] || placeholders['es'];
     }
     
     const costInput = document.getElementById('cost-per-km');
@@ -101,52 +99,181 @@ function updateLanguage() {
         };
         costInput.placeholder = placeholders[currentLang] || placeholders['es'];
     }
-    
-    // Update textarea placeholder
-    const textarea = document.querySelector('textarea[placeholder]');
-    if (textarea) {
-        const placeholders = {
-            'es': 'Detalles adicionales sobre tu viaje...',
-            'en': 'Additional details about your trip...',
-            'pt': 'Detalhes adicionais sobre sua viagem...'
-        };
-        textarea.placeholder = placeholders[currentLang] || placeholders['es'];
-    }
-    
-    // Update select options
-    const selectOptions = document.querySelectorAll('select option[data-es]');
-    selectOptions.forEach(option => {
-        const text = option.getAttribute(`data-${currentLang}`);
-        if (text && option.value !== '') {
-            option.textContent = text;
-        }
-    });
 }
 
-// Fare Calculator
+// Google Maps Integration using Microservice
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBH7tiKRSqqZ43cSs20mZqkmYacJOO3rgY';
+let map = null;
+let directionsRenderer = null;
+let originAutocomplete = null;
+let destinationAutocomplete = null;
+
+// Initialize Google Maps when page loads
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize Google Maps Service
+    if (typeof GoogleMapsService !== 'undefined') {
+        GoogleMapsService.initialize({
+            apiKey: GOOGLE_MAPS_API_KEY,
+            language: 'es',
+            region: 'CL'
+        });
+
+        // Wait for Google Maps to load
+        try {
+            await GoogleMapsService.loadGoogleMapsScript(GOOGLE_MAPS_API_KEY, 'es', 'CL');
+            initMap();
+            initAutocomplete();
+        } catch (error) {
+            console.error('Error inicializando Google Maps:', error);
+        }
+    }
+});
+
+// Initialize map
+function initMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer || !window.google || !window.google.maps) return;
+
+    map = new google.maps.Map(mapContainer, {
+        center: { lat: -33.4489, lng: -70.6693 }, // Santiago, Chile
+        zoom: 10,
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: true
+    });
+
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: false
+    });
+
+    console.log('[Google Maps] Mapa inicializado correctamente');
+}
+
+// Initialize autocomplete
+function initAutocomplete() {
+    if (!window.google || !window.google.maps || !window.google.maps.places) return;
+
+    const originInput = document.getElementById('origin-input');
+    if (originInput) {
+        originAutocomplete = new google.maps.places.Autocomplete(originInput, {
+            types: ['geocode', 'establishment'],
+            componentRestrictions: { country: 'cl' }
+        });
+    }
+
+    const destinationInput = document.getElementById('destination-input');
+    if (destinationInput) {
+        destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput, {
+            types: ['geocode', 'establishment'],
+            componentRestrictions: { country: 'cl' }
+        });
+    }
+}
+
+// Fare Calculator with Google Maps
 const calculateBtn = document.getElementById('calculate-btn');
-const distanceInput = document.getElementById('distance');
+const originInput = document.getElementById('origin-input');
+const destinationInput = document.getElementById('destination-input');
 const costPerKmInput = document.getElementById('cost-per-km');
 const fareResult = document.getElementById('fare-result');
+const routeInfo = document.getElementById('route-info');
+const routeDistance = document.getElementById('route-distance');
+const routeDuration = document.getElementById('route-duration');
 
 if (calculateBtn) {
-    calculateBtn.addEventListener('click', () => {
-        const distance = parseFloat(distanceInput.value);
-        const costPerKm = parseFloat(costPerKmInput.value) || 1500;
-        
-        if (distance && distance > 0) {
-            const total = distance * costPerKm;
-            fareResult.textContent = `$${total.toLocaleString('es-CL')}`;
-            fareResult.style.animation = 'none';
-            setTimeout(() => {
-                fareResult.style.animation = 'pulse 0.5s ease';
-            }, 10);
-        } else {
-            fareResult.textContent = '$0';
+    calculateBtn.addEventListener('click', async () => {
+        const origin = originInput?.value.trim();
+        const destination = destinationInput?.value.trim();
+        const costPerKm = parseFloat(costPerKmInput?.value) || 1500;
+
+        if (!origin || !destination) {
             const messages = {
-                'es': 'Por favor ingresa una distancia válida',
-                'en': 'Please enter a valid distance',
-                'pt': 'Por favor, digite uma distância válida'
+                'es': 'Por favor ingresa origen y destino',
+                'en': 'Please enter origin and destination',
+                'pt': 'Por favor, digite origem e destino'
+            };
+            alert(messages[currentLang] || messages['es']);
+            return;
+        }
+
+        if (!GoogleMapsService || !window.google || !window.google.maps) {
+            const messages = {
+                'es': 'Google Maps aún no está cargado. Por favor espera unos segundos.',
+                'en': 'Google Maps is still loading. Please wait a few seconds.',
+                'pt': 'Google Maps ainda está carregando. Por favor, aguarde alguns segundos.'
+            };
+            alert(messages[currentLang] || messages['es']);
+            return;
+        }
+
+        try {
+            calculateBtn.disabled = true;
+            const btnTexts = {
+                'es': 'Calculando...',
+                'en': 'Calculating...',
+                'pt': 'Calculando...'
+            };
+            calculateBtn.textContent = btnTexts[currentLang] || btnTexts['es'];
+
+            // Calculate route using microservice
+            const routeInfoData = await GoogleMapsService.calculateRoute({
+                origin: origin,
+                destination: destination,
+                travelMode: 'DRIVING'
+            });
+
+            calculateBtn.disabled = false;
+            const btnTextsDone = {
+                'es': 'Calcular Ruta',
+                'en': 'Calculate Route',
+                'pt': 'Calcular Rota'
+            };
+            calculateBtn.textContent = btnTextsDone[currentLang] || btnTextsDone['es'];
+
+            if (routeInfoData) {
+                // Display route on map
+                if (directionsRenderer && routeInfoData.route) {
+                    directionsRenderer.setDirections(routeInfoData.route);
+                }
+
+                // Update route info
+                routeDistance.textContent = routeInfoData.distanceText;
+                routeDuration.textContent = routeInfoData.durationText;
+                routeInfo.style.display = 'block';
+
+                // Calculate fare
+                const total = routeInfoData.distance * costPerKm;
+                fareResult.textContent = `$${Math.round(total).toLocaleString('es-CL')}`;
+                fareResult.style.animation = 'none';
+                setTimeout(() => {
+                    fareResult.style.animation = 'pulse 0.5s ease';
+                }, 10);
+            } else {
+                const messages = {
+                    'es': 'Error al calcular la ruta. Verifica las direcciones e intenta nuevamente.',
+                    'en': 'Error calculating route. Please verify addresses and try again.',
+                    'pt': 'Erro ao calcular a rota. Verifique os endereços e tente novamente.'
+                };
+                alert(messages[currentLang] || messages['es']);
+                fareResult.textContent = '$0';
+                routeInfo.style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('[Calculator] Error:', error);
+            calculateBtn.disabled = false;
+            const btnTexts = {
+                'es': 'Calcular Ruta',
+                'en': 'Calculate Route',
+                'pt': 'Calcular Rota'
+            };
+            calculateBtn.textContent = btnTexts[currentLang] || btnTexts['es'];
+            
+            const messages = {
+                'es': 'Error al calcular la ruta. Verifica las direcciones e intenta nuevamente.',
+                'en': 'Error calculating route. Please verify addresses and try again.',
+                'pt': 'Erro ao calcular a rota. Verifique os endereços e tente novamente.'
             };
             alert(messages[currentLang] || messages['es']);
         }
@@ -260,3 +387,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+

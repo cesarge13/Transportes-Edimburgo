@@ -904,15 +904,46 @@ section {
     transform: scale(1.1);
 }
 
-.calculator-image img {
+.calculator-map {
     width: 100%;
+    height: 400px;
     border-radius: 15px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
-    transition: transform var(--transition-slow);
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
 }
 
-.calculator-image:hover img {
-    transform: scale(1.05) rotate(1deg);
+.calculator-map #map {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+}
+
+.route-info {
+    background: var(--light-grey);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    color: var(--text-dark);
+    font-weight: 600;
 }
 
 /* Booking Section */
@@ -1276,6 +1307,14 @@ section {
     .calculator-content {
         grid-template-columns: 1fr !important;
         gap: 2rem !important;
+    }
+
+    .calculator-map {
+        height: 300px !important;
+    }
+
+    .route-info {
+        grid-template-columns: 1fr !important;
     }
     
     .form-row {
